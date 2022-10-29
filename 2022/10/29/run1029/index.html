@@ -75,11 +75,9 @@ insert into database_name.table_name(colume1,colume2...) values(values1,values2)
 select *_1 from *_2 where *_3;
 //以上语法为sqlite语法，后头的“；”是必须的（头铁的撞）
 </code></pre>
-<p>=======</p>
-<h2 id="有了基本语法就可以实现一些操作了"><a href="#有了基本语法就可以实现一些操作了" class="headerlink" title="有了基本语法就可以实现一些操作了"></a>有了基本语法就可以实现一些操作了</h2><h3 id="1-Qt对数据库的操作可以使用QSqlQuery类来实现，在这里我只用了QSqlQuery-exec-方法。"><a href="#1-Qt对数据库的操作可以使用QSqlQuery类来实现，在这里我只用了QSqlQuery-exec-方法。" class="headerlink" title="1.Qt对数据库的操作可以使用QSqlQuery类来实现，在这里我只用了QSqlQuery::exec()方法。"></a>1.Qt对数据库的操作可以使用QSqlQuery类来实现，在这里我只用了QSqlQuery::exec()方法。</h3><h3 id="2-具体操作时还可以借助QSqlQuery-prepare-方法来确保程序的健壮性。"><a href="#2-具体操作时还可以借助QSqlQuery-prepare-方法来确保程序的健壮性。" class="headerlink" title="2.具体操作时还可以借助QSqlQuery::prepare()方法来确保程序的健壮性。"></a>2.具体操作时还可以借助QSqlQuery::prepare()方法来确保程序的健壮性。</h3><h3 id="3-Qt中数据库文件用QSqlDatabase类来标识，这里只用到QSqlDatabase-open-方法和QSqlDatabase-close-方法"><a href="#3-Qt中数据库文件用QSqlDatabase类来标识，这里只用到QSqlDatabase-open-方法和QSqlDatabase-close-方法" class="headerlink" title="3.Qt中数据库文件用QSqlDatabase类来标识，这里只用到QSqlDatabase::open()方法和QSqlDatabase::close()方法"></a>3.Qt中数据库文件用QSqlDatabase类来标识，这里只用到QSqlDatabase::open()方法和QSqlDatabase::close()方法</h3><h3 id="4-数据库文件用完记得关闭！！！"><a href="#4-数据库文件用完记得关闭！！！" class="headerlink" title="4.数据库文件用完记得关闭！！！"></a>4.数据库文件用完记得关闭！！！</h3><h3 id="5-做项目删除数据时备份成为静态文件是一个良好的修养-正经脸-。"><a href="#5-做项目删除数据时备份成为静态文件是一个良好的修养-正经脸-。" class="headerlink" title="5.做项目删除数据时备份成为静态文件是一个良好的修养(正经脸)。"></a>5.做项目删除数据时备份成为静态文件是一个良好的修养(正经脸)。</h3><p>=======</p>
-<h2 id="上代码"><a href="#上代码" class="headerlink" title="上代码:"></a>上代码:</h2><h3 id="框架："><a href="#框架：" class="headerlink" title="框架："></a>框架：</h3><pre><code>! [文件结构](../qt1.jpg &quot;文件结构&quot;)
-! [ui文件](../qt2.jpg &quot;ui文件&quot;)
-</code></pre>
+<hr>
+<h2 id="有了基本语法就可以实现一些操作了"><a href="#有了基本语法就可以实现一些操作了" class="headerlink" title="有了基本语法就可以实现一些操作了"></a>有了基本语法就可以实现一些操作了</h2><h3 id="1-Qt对数据库的操作可以使用QSqlQuery类来实现，在这里我只用了QSqlQuery-exec-方法。"><a href="#1-Qt对数据库的操作可以使用QSqlQuery类来实现，在这里我只用了QSqlQuery-exec-方法。" class="headerlink" title="1.Qt对数据库的操作可以使用QSqlQuery类来实现，在这里我只用了QSqlQuery::exec()方法。"></a>1.Qt对数据库的操作可以使用QSqlQuery类来实现，在这里我只用了QSqlQuery::exec()方法。</h3><h3 id="2-具体操作时还可以借助QSqlQuery-prepare-方法来确保程序的健壮性。"><a href="#2-具体操作时还可以借助QSqlQuery-prepare-方法来确保程序的健壮性。" class="headerlink" title="2.具体操作时还可以借助QSqlQuery::prepare()方法来确保程序的健壮性。"></a>2.具体操作时还可以借助QSqlQuery::prepare()方法来确保程序的健壮性。</h3><h3 id="3-Qt中数据库文件用QSqlDatabase类来标识，这里只用到QSqlDatabase-open-方法和QSqlDatabase-close-方法"><a href="#3-Qt中数据库文件用QSqlDatabase类来标识，这里只用到QSqlDatabase-open-方法和QSqlDatabase-close-方法" class="headerlink" title="3.Qt中数据库文件用QSqlDatabase类来标识，这里只用到QSqlDatabase::open()方法和QSqlDatabase::close()方法"></a>3.Qt中数据库文件用QSqlDatabase类来标识，这里只用到QSqlDatabase::open()方法和QSqlDatabase::close()方法</h3><h3 id="4-数据库文件用完记得关闭！！！"><a href="#4-数据库文件用完记得关闭！！！" class="headerlink" title="4.数据库文件用完记得关闭！！！"></a>4.数据库文件用完记得关闭！！！</h3><h3 id="5-做项目删除数据时备份成为静态文件是一个良好的修养-正经脸-。"><a href="#5-做项目删除数据时备份成为静态文件是一个良好的修养-正经脸-。" class="headerlink" title="5.做项目删除数据时备份成为静态文件是一个良好的修养(正经脸)。"></a>5.做项目删除数据时备份成为静态文件是一个良好的修养(正经脸)。</h3><hr>
+<h2 id="上代码"><a href="#上代码" class="headerlink" title="上代码:"></a>上代码:</h2><h3 id="框架："><a href="#框架：" class="headerlink" title="框架："></a>框架：</h3><p>! <a href="../qt1.jpg" title="文件结构">文件结构</a><br>! <a href="../qt2.jpg" title="ui文件">ui文件</a></p>
 <h3 id="pro文件内容："><a href="#pro文件内容：" class="headerlink" title=".pro文件内容："></a>.pro文件内容：</h3><pre><code>&lt;cpp
 QT       += core gui  sql
 
@@ -109,7 +107,7 @@ else: unix:!android: target.path = /opt/$$&#123;TARGET&#125;/bin
 RESOURCES += \
     image.qrc
 </code></pre>
-<p>========</p>
+<hr>
 <h3 id="h文件内容："><a href="#h文件内容：" class="headerlink" title=".h文件内容："></a>.h文件内容：</h3><pre><code>&lt;cpp
 #ifndef LOGINWIDGET_H
 #define LOGINWIDGET_H
