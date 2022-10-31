@@ -8,7 +8,7 @@
     <meta http-equiv="Cache-Control" content="no-siteapp">
     <title>
         
-            Hexo
+            Qt使用线程防卡顿事例
         
     </title>
     <link rel="shortcut icon" href="#"/>
@@ -31,133 +31,379 @@
 <meta name="generator" content="Hexo 5.4.2"></head>
 <body>
     <a id="cover"></a>
-    <link type="text/css" rel="stylesheet" href="/css/index.css">
-<div id="count"></div>
-<div id="header" >
+    <link type="text/css" rel="stylesheet" href="/css/post.css">
+<div id="header" class="header">
     <div class="vertical">
         <div class="inner">
             
-                <h1 class="header-title">Jem Run</h1>
-                <h2 class="header-description" id="hitokoto"></h2>
-                <h3 class="header-info" id="hitokotoAuthor"></h3>
+                <h1 class="header-subtitle">Qt使用线程防卡顿事例</h1>
+                <div class="header-subinfo">
+                    <p class="article-info-text">
+                        <span>
+                            <i class="iconfont icon-time"></i> 发表时间：2022-10-31
+                        </span>
+                        
+                            <span id="/2022/10/31/run1031/" class="leancloud_visitors" data-flag-title="Qt使用线程防卡顿事例">
+                                <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
+                            </span>
+                        
+                        <span>
+                            <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2022/10/31/run1031/"></span>
+                        </span>  
+                    </p>
+                    
+                    
+                </div>
             
         </div>
     </div>
     
-        <a class="scroll-down" href="javascript:;" target="_self" data-offset="-45">
-            <i class="scroll-down-icon iconfont icon-return"></i>
-        </a>
-    
 </div>
 <div id="container">
     
-        
-            <!-- 首页 -->
-            <div class="articles">
+        <!-- 文章页面 -->
+        <div id="article">
+            <div class="toc"></div>
+            <div class="article-body">
+                <h1 id="聊一下Qt中常用的使用多线程解决控件显示卡顿的问题"><a href="#聊一下Qt中常用的使用多线程解决控件显示卡顿的问题" class="headerlink" title="聊一下Qt中常用的使用多线程解决控件显示卡顿的问题"></a>聊一下Qt中常用的使用多线程解决控件显示卡顿的问题</h1><hr>
+<h2 id="首先是Qt中的线程类型"><a href="#首先是Qt中的线程类型" class="headerlink" title="首先是Qt中的线程类型"></a>首先是Qt中的线程类型</h2><ul>
+<li>区别于C++中的线程，Qt中QThread类在windows和linux平台中的表现是不同的</li>
+<li>windows下QThread类全部使用的非分离式线程，即C++ thread::join()式</li>
+<li>linux下QThread类使用分离式线程，即C++ thread::detach()式</li>
+<li>下面全部使用linux平台进行演示，嘿嘿就是“标准”</li>
+<li>实现一个小控件，生成随机数并排序</li>
+</ul>
+<hr>
+<h1 id="其次就是构建继承自QThread类的自定义类"><a href="#其次就是构建继承自QThread类的自定义类" class="headerlink" title="其次就是构建继承自QThread类的自定义类"></a>其次就是构建继承自QThread类的自定义类</h1><ul>
+<li>自定义信号，自定义槽就不说了</li>
+<li>主要就是对QThread::run()函数的重写</li>
+<li>QThread::run()函数是线程中真正执行的内容</li>
+<li>线程中的逻辑实现应该在QThread::run()函数中进行</li>
+<li>看到网上“QThread::run()函数运行完毕后会自动发出QThread::finished()”，我觉得不对，也没来得及深究</li>
+<li>线程结束使用QThread::quit()函数</li>
+</ul>
+<hr>
+<h1 id="上代码"><a href="#上代码" class="headerlink" title="上代码"></a>上代码</h1><h2 id="widget-h文件内容："><a href="#widget-h文件内容：" class="headerlink" title="widget.h文件内容："></a>widget.h文件内容：</h2><pre><code>&lt;cpp
+#ifndef WIDGET_H
+#define WIDGET_H
+
+#include &lt;QWidget&gt;
+#include &quot;mythread.h&quot;
+#include &lt;QVector&gt;
+
+QT_BEGIN_NAMESPACE
+namespace Ui &#123; class Widget; &#125;
+QT_END_NAMESPACE
+
+class Widget : public QWidget
+&#123;
+    Q_OBJECT
+
+public:
+    Widget(QWidget *parent = nullptr);
+    ~Widget();
+signals:
+
+
+private:
+    Ui::Widget *ui;
+    QVector&lt;int&gt; vec;
+    MyThread *thread;
+    MyThread_1 *thread_1;
+    MyThread_2 *thread_2;
+&#125;;
+#endif // WIDGET_H
+</code></pre>
+<h2 id="widget-h内容"><a href="#widget-h内容" class="headerlink" title="widget.h内容"></a>widget.h内容</h2><pre><code>&lt;cpp
+#include &quot;widget.h&quot;
+#include &quot;ui_widget.h&quot;
+#include &quot;mythread.h&quot;
+#include &lt;QIterator&gt;
+#include &lt;QGridLayout&gt;
+
+Widget::Widget(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::Widget)
+&#123;
+    ui-&gt;setupUi(this);
+    thread = new MyThread(this);
+    thread_1 = new MyThread_1(this);
+    thread_2 = new MyThread_2(this);
+    QGridLayout *lay = new QGridLayout();
+    this-&gt;ui-&gt;groupBox-&gt;setLayout(lay);
+    lay-&gt;addWidget(thread-&gt;ListWidget);
+    QGridLayout *lay_1 = new QGridLayout();
+    this-&gt;ui-&gt;groupBox_2-&gt;setLayout(lay_1);
+    lay_1-&gt;addWidget(thread_1-&gt;ListWidget);
+    QGridLayout *lay_2 = new QGridLayout();
+    this-&gt;ui-&gt;groupBox_3-&gt;setLayout(lay_2);
+    lay_2-&gt;addWidget(thread_2-&gt;ListWidget);
+    connect(ui-&gt;pushButton_1,&amp;QPushButton::clicked,thread,[=]()
+    &#123;
+        emit thread-&gt;starting(ui-&gt;lineEdit-&gt;text().toInt());
+    &#125;);
+    connect(thread,&amp;MyThread::display_data,this,[=](QVector&lt;int&gt; vec)
+    &#123;
+        this-&gt;vec = vec;
+    &#125;);
+    connect(ui-&gt;pushButton_2,&amp;QPushButton::clicked,thread_1,[this]()
+    &#123;
+        emit thread_1-&gt;starting(this-&gt;vec);
+    &#125;);
+    connect(ui-&gt;pushButton_3,&amp;QPushButton::clicked,thread_2,[this]()
+    &#123;
+        emit thread_2-&gt;starting(this-&gt;vec);
+    &#125;);
+&#125;
+
+Widget::~Widget()
+&#123;
+    delete ui;
+&#125;
+</code></pre>
+<h2 id="MyThread-h-文件内容"><a href="#MyThread-h-文件内容" class="headerlink" title="MyThread.h 文件内容"></a>MyThread.h 文件内容</h2><pre><code>&lt;cpp
+#ifndef MYTHREAD_H
+#define MYTHREAD_H
+
+#include &lt;QThread&gt;
+#include &lt;QVector&gt;
+#include &lt;QListWidget&gt;
+
+class MyThread : public QThread
+&#123;
+    Q_OBJECT
+public:
+    explicit MyThread(QObject *parent = nullptr);
+    QListWidget *ListWidget;
+
+signals:
+private:
+    int num;
+
+signals:
+    void display_data(QVector&lt;int&gt;);
+    void starting(int num);
+
+protected:
+    void run();
+
+&#125;;
+
+class MyThread_1 : public QThread
+&#123;
+    Q_OBJECT
+public:
+    explicit MyThread_1(QObject *parent = nullptr);
+    QListWidget *ListWidget;
+
+signals:
+    void starting(QVector&lt;int&gt; vec);
+private:
+    QVector&lt;int&gt; vec;
+
+signals:
+
+protected:
+    void run();
+
+&#125;;
+
+class MyThread_2: public QThread
+&#123;
+    Q_OBJECT
+public:
+    explicit MyThread_2(QObject *parent = nullptr);
+    QListWidget *ListWidget;
+signals:
+    void starting(QVector&lt;int&gt; vec);
+private:
+    QVector&lt;int&gt; vec;
+    void quick_sort(QVector&lt;int&gt; &amp;vec,int where_base,int where_end);
+
+signals:
+
+protected:
+    void run();
+
+&#125;;
+
+#endif // MYTHREAD_H
+</code></pre>
+<h2 id="MyThread-cpp文件内容："><a href="#MyThread-cpp文件内容：" class="headerlink" title="MyThread.cpp文件内容："></a>MyThread.cpp文件内容：</h2><pre><code>&lt;cpp
+#include &quot;mythread.h&quot;
+#include &lt;QVector&gt;
+
+MyThread::MyThread(QObject *parent)
+    : QThread&#123;parent&#125;
+&#123;
+    this-&gt;ListWidget = new QListWidget();
+    connect(this,&amp;MyThread::starting,this,[=](int num)
+    &#123;
+        this-&gt;num = num;
+        run();
+    &#125;);
+&#125;
+
+void MyThread::run()
+&#123;
+    QVector&lt;int&gt; vec;
+    for(int i = 0;i&lt;num;i++)
+    &#123;
+        vec.push_back(rand() % 10000);
+    &#125;
+    emit display_data(vec);
+    QVector&lt;int&gt;::Iterator x;
+    for(x = vec.begin();x != vec.end();x++)
+    &#123;
+        this-&gt;ListWidget-&gt;addItem(QString::number(*x));
+    &#125;
+&#125;
+
+MyThread_1::MyThread_1(QObject *parent)
+    : QThread&#123;parent&#125;
+&#123;
+    this-&gt;ListWidget = new QListWidget();
+    connect(this,&amp;MyThread_1::starting,this,[=](QVector&lt;int&gt; vec)
+    &#123;
+        this-&gt;vec = vec;
+        run();
+    &#125;);
+&#125;
+
+void MyThread_1::run()
+&#123;
+    for(int i = 0;i &lt; vec.size()-1;i++)
+    &#123;
+        for(int j = i + 1;j&lt;vec.size();j++)
+        &#123;
+            if(vec[j]&gt;vec[i])
+            &#123;
+                int temp = vec[i];
+                vec[i] = vec[j];
+                vec[j] = temp;
+            &#125;
+        &#125;
+    &#125;
+    QVector&lt;int&gt;::Iterator x;
+    for(x = vec.begin();x != vec.end();x++)
+    &#123;
+        this-&gt;ListWidget-&gt;addItem(QString::number(*x));
+    &#125;
+&#125;
+
+MyThread_2::MyThread_2(QObject *parent)
+    : QThread&#123;parent&#125;
+&#123;
+    this-&gt;ListWidget = new QListWidget();
+    connect(this,&amp;MyThread_2::starting,this,[=](QVector&lt;int&gt; vec)
+    &#123;
+        this-&gt;vec = vec;
+        run();
+    &#125;);
+&#125;
+
+void MyThread_2::run()
+&#123;
+    quick_sort(vec, 0, vec.size() - 1);
+    QVector&lt;int&gt;::Iterator x;
+    for(x = vec.begin();x != vec.end();x++)
+    &#123;
+        this-&gt;ListWidget-&gt;addItem(QString::number(*x));
+    &#125;
+&#125;
+void MyThread_2::quick_sort(QVector&lt;int&gt; &amp;vec,int where_base,int where_end)
+&#123;
+    if(where_base&lt;where_end)
+    &#123;
+        int key = vec[where_base];
+        int i = where_base;
+        int j = where_end;
+        while(i&lt;j)
+        &#123;
+            while(i&lt;j &amp;&amp; vec[j]&gt;key)
+            &#123;
+                j--;
+            &#125;
+            if(i&lt;j)
+            &#123;
+                vec[i] = vec[j];
+                i++;
+            &#125;
+            while(i&lt;j &amp;&amp; vec[i]&lt;key)
+            &#123;
+                i++;
+            &#125;
+            if(i&lt;j)
+            &#123;
+                vec[j] = vec[i];
+                j--;
+            &#125;
+        &#125;
+        vec[i] = key;
+        quick_sort(vec,where_base,i - 1);
+        quick_sort(vec,i + 1,where_end);
+    &#125;
+&#125;
+</code></pre>
+<h2 id="main-cpp文件内容："><a href="#main-cpp文件内容：" class="headerlink" title="main.cpp文件内容："></a>main.cpp文件内容：</h2><pre><code>&lt;cpp
+#include &quot;widget.h&quot;
+
+#include &lt;QApplication&gt;
+
+int main(int argc, char *argv[])
+&#123;
+    QApplication a(argc, argv);
+    Widget w;
+    w.show();
+    return a.exec();
+&#125;
+</code></pre>
+
                 
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="/2022/10/31/run1020/">51单片机开发数码管</a>
-                            
-                        </div>
-                        <div class="article-abstract">
-                            
-                        </div>
-                        <div class="clear"></div>
-                        <div class="article-info">
-                            <span>
-                                <i class="iconfont icon-time"></i> 发表时间：2022-10-31
-                            </span>
-                            
-                                <span id="/2022/10/31/run1020/" class="leancloud_visitors" data-flag-title="51单片机开发数码管">
-                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
-                                </span>
-                            
-                            <span>
-                                <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2022/10/31/run1020/"></span>
-                            </span>
-                        </div>
-                        <div class="clear"></div>     
-                    </div>
+                <p class="end">__END__</p>
+            </div>
+            <div class="article-footer">
+                <div class="suffix-box">
+    <div class="suffix-box-left">
+        <img src="image/header/jemrun.jpg" alt="Jem Run">
+    </div>
+    <div class="suffix-box-right">
+        <span class="suffix-box-title">文章作者：</span>Jem Run
+        <br>
+        <span class="suffix-box-title">文章出处：</span><a href="/2022/10/31/run1031/" target="_blank">Qt使用线程防卡顿事例</a>
+        <br>
+        <span class="suffix-box-title">作者签名：</span>I wanner you love me before everything!
+        <br>
+        <span class="suffix-box-title">关于主题：</span><a href="https://github.com/first19326/Hexo-LiveForCode" target="_blank">Hexo - Live For Code</a>
+        <br>
+        <span class="suffix-box-title">版权声明：</span>文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" title="BY-NC-SA" target="_blank">BY-NC-SA</a> 许可协议，转载请注明出处
+        <br>
+    </div>
+    <div style="clear: both;"></div>
+</div>
                 
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="/2022/10/31/run1031/">Qt使用线程防卡顿事例</a>
-                            
-                        </div>
-                        <div class="article-abstract">
-                            
-                        </div>
-                        <div class="clear"></div>
-                        <div class="article-info">
-                            <span>
-                                <i class="iconfont icon-time"></i> 发表时间：2022-10-31
-                            </span>
-                            
-                                <span id="/2022/10/31/run1031/" class="leancloud_visitors" data-flag-title="Qt使用线程防卡顿事例">
-                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
-                                </span>
-                            
-                            <span>
-                                <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2022/10/31/run1031/"></span>
-                            </span>
-                        </div>
-                        <div class="clear"></div>     
-                    </div>
                 
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="/2022/10/29/run1029/">QT使用静态数据库sqlite实现登陆检索</a>
-                            
-                        </div>
-                        <div class="article-abstract">
-                            
-                        </div>
-                        <div class="clear"></div>
-                        <div class="article-info">
-                            <span>
-                                <i class="iconfont icon-time"></i> 发表时间：2022-10-29
-                            </span>
-                            
-                                <span id="/2022/10/29/run1029/" class="leancloud_visitors" data-flag-title="QT使用静态数据库sqlite实现登陆检索">
-                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
-                                </span>
-                            
-                            <span>
-                                <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2022/10/29/run1029/"></span>
-                            </span>
-                        </div>
-                        <div class="clear"></div>     
-                    </div>
-                
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="/2022/10/19/run1019/">郝帅栋的日常</a>
-                            
-                        </div>
-                        <div class="article-abstract">
-                            
-                        </div>
-                        <div class="clear"></div>
-                        <div class="article-info">
-                            <span>
-                                <i class="iconfont icon-time"></i> 发表时间：2022-10-19
-                            </span>
-                            
-                                <span id="/2022/10/19/run1019/" class="leancloud_visitors" data-flag-title="郝帅栋的日常">
-                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
-                                </span>
-                            
-                            <span>
-                                <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2022/10/19/run1019/"></span>
-                            </span>
-                        </div>
-                        <div class="clear"></div>     
-                    </div>
-                
+                <div class="article-prev-next">
+                    
+                        <a href="/2022/10/31/run1020/" class="prev-prefix">« </a> 上一篇：    <a href="/2022/10/31/run1020/" title="发布于 2022-10-31 11:20">51单片机开发数码管</a>
+                        <br>
+                    
+                    
+                        <a href="/2022/10/29/run1029/" class="next-prefix">» </a> 下一篇：    <a href="/2022/10/29/run1029/" title="发布于 2022-10-29 10:07">QT使用静态数据库sqlite实现登陆检索</a>
+                    
+                </div>
             </div>
             
+    <div class="article-comments">
         
+            <div class="comments-title">
+                评论列表
+            </div>
+        
+        <div class="comments-content"></div>
+    </div>
+
+        </div>
     
 </div>
     <div id="footer"></div>
@@ -176,7 +422,7 @@
             <div class="menu-list">
                 <ul>
                     
-                        <li class=" active "><a href="/" class="" target="_self"><span class="iconfont icon-home-fill"></span>首页</a></li>
+                        <li class=""><a href="/" class="" target="_self"><span class="iconfont icon-home-fill"></span>首页</a></li>
                     
                         <li class=""><a href="/category" class="" target="_self"><span class="iconfont icon-folder-fill"></span>分类</a></li>
                     
